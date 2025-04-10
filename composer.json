@@ -1,0 +1,32 @@
+{
+  "name": "plan-com/docker-generator",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Rafal Jakubiak",
+      "email": "rafaljakubiak@plan.com"
+    }
+  ],
+  "description": "A PHP library to generate Docker files via an Artisan command.",
+  "autoload": {
+    "psr-4": {
+      "DockerGenerator\\": "src/"
+    }
+  },
+  "require": {
+    "php": "^8.3",
+    "illuminate/support": ">=11.0"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "DockerGenerator\\Providers\\DockerServiceProvider"
+      ]
+    }
+  },
+  "require-dev": {
+    "orchestra/testbench": "^10.2"
+  },
+  "prefer-stable": true
+}

@@ -1,0 +1,21 @@
+FROM php:8.3-fpm
+
+RUN apt-get update && apt-get install -y \
+    git \
+    zip \
+    zlib1g-dev \
+    libzip-dev \
+    curl
+
+RUN docker-php-ext-install zip pdo pdo_mysql pcntl
+
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+RUN pecl install xdebug && docker-php-ext-enable xdebug
+
+COPY php.ini /usr/local/etc/php/
+
+RUN mkdir -p /var/log && chmod -R 777 /var/log
+WORKDIR /var/www/html
+
+EXPOSE 9000 9003

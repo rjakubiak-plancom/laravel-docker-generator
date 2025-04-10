@@ -1,0 +1,53 @@
+# Executables (local)
+DOCKER_EXEC = docker exec -it {{prefix}}_php
+COMPOSE_CMD = docker compose
+
+# Executables
+PHP = php
+COMPOSER = $(DOCKER_EXEC) composer
+ARTISAN  = $(DOCKER_EXEC) php artisan
+
+## Build project
+
+## —— Composer 🤖 ————————————————————————————————————————————————————————————--
+composer-install:
+	@$(COMPOSER) install --prefer-dist
+
+## -- Migrations ----------------------------------------------------------------
+migrate:
+	@$(ARTISAN) migrate:fresh --seed
+
+migrate-test:
+	@$(ARTISAN) migrate:fresh --seed --env=testing
+
+## -- Tests 🤯 ————————————————————————————————————————————————————————————-----
+tests: tests-unit-with-coverage
+
+tests-fast:
+	@$(DOCKER_EXEC) ./vendor/bin/phpunit --stop-on-failure
+
+tests-unit-with-coverage:
+	@$(DOCKER_EXEC) ./vendor/bin/phpunit -dxdebug.mode=coverage --coverage-clover ./tests/reports/phpunit.coverage.xml --coverage-html tests/reports/unit/html/
+
+## —— Validation 🤠 ————————————————————————————————————————————————————————————
+validate: phpstan
+
+phpstan:
+	@$(DOCKER_EXEC) ./vendor/bin/phpstan analyse
+
+## -- Fixers 🔧 ----------------------------------------------------------------
+fixers: pint
+
+pint:
+	-@$(PHP) ./vendor/bin/pint
+
+## -- Pre-Push ----------------------------------------------------------------
+pre-push: fixers validate tests
+
+## -- Shared Network Check ------------------------------------------------------
+check-network:
+	@docker network ls | grep -q "external" || docker network create external
+
+## -- Build Command -------------------------------------------------------------
+build: check-network
+	@$(COMPOSE_CMD) down -v && $(COMPOSE_CMD) build && $(COMPOSE_CMD) up -d

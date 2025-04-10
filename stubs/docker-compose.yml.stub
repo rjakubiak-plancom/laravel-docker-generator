@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  php:
+    container_name: {{prefix}}_php
+    build:
+      context: "${DOCKER_OUTPUT_DIR:-docker/basic}"
+      dockerfile: Dockerfile
+    volumes:
+      - '.:/var/www/html'
+    networks:
+      {{prefix}}_internal:
+        aliases:
+          - {{prefix}}_php
+      external:
+        aliases:
+          - {{prefix}}_php
+    depends_on:
+      - mysql
+      - redis
+  nginx:
+    container_name: {{prefix}}_nginx
+    image: nginx:alpine
+    volumes:
+      - .:/var/www/html
+      - "./${DOCKER_OUTPUT_DIR:-docker/basic}/nginx/conf.d:/etc/nginx/conf.d"
+    ports:
+      - "${DOCKER_NGINX_PORT:-8091}:80"
+    depends_on:
+      - php
+    networks:
+      {{prefix}}_internal:
+        aliases:
+          - {{prefix}}_nginx
+      external:
+        aliases:
+          - {{prefix}}_nginx
+  mysql:
+    container_name: {{prefix}}_mysql
+    image: 'mysql/mysql-server:8.0'
+    ports:
+      - '${DB_PORT:-3306}:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_DATABASE: '${DB_DATABASE}'
+      MYSQL_USER: '${DB_USERNAME}'
+      MYSQL_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+    volumes:
+      - '{{prefix}}-mysql:/var/lib/mysql'
+    networks:
+      - {{prefix}}_internal
+  redis:
+    container_name: {{prefix}}_redis
+    image: 'redis:alpine'
+    ports:
+      - '${DOCKER_REDIS_PORT:-6379}:6379'
+    volumes:
+      - '{{prefix}}-redis:/data'
+    networks:
+      - {{prefix}}_internal
+networks:
+  {{prefix}}_internal:
+    driver: bridge
+  external:
+    external: true
+
+volumes:
+  {{prefix}}-mysql:
+    driver: local
+  {{prefix}}-redis:
+    driver: local
