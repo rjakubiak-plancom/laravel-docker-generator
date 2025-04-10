@@ -66,3 +66,8 @@ The processed files are then written to your Laravel application's file system i
 `Makefile` – Placed at the project root, it includes commands (e.g., for running Docker and Artisan operations) that reference your prefixed service names.  
 `.env.docker.dist` – Also in the project root, this file acts as a template for any environment variables needed by your Docker configuration.  
 
+### Overriding some variables
+
+In .env.docker.dist there are some variables you can use in .env file like  
+`COMPOSE_PROJECT_NAME` - sets a name for docker environment project name   
+`DOCKER_OUTPUT_DIR` - sets where to put docker files like Dockerfile  
