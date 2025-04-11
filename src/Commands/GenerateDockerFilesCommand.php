@@ -12,10 +12,12 @@ class GenerateDockerFilesCommand extends Command
     public function handle()
     {
         $prefix = $this->argument('prefix');
+        $prefix = trim($prefix);
+
         $outputDir = env('DOCKER_OUTPUT_DIR', 'docker/basic');
 
         $files = [
-            'docker-compose.yml.stub' => base_path( 'docker-compose.yml'),
+            'docker-compose.yml.stub' => base_path( sprintf('docker-compose.%s.yml', $prefix)),
             'Dockerfile.stub' => base_path($outputDir . '/Dockerfile'),
             'Makefile.stub' => base_path('Makefile'),
             '.env.docker.dist.stub' => base_path('.env.docker.dist'),

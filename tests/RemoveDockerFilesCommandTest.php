@@ -3,13 +3,14 @@
 namespace DockerGenerator\Tests;
 
 use DockerGenerator\Providers\DockerServiceProvider;
-use Orchestra\Testbench\TestCase;
 use Illuminate\Filesystem\Filesystem;
+use Orchestra\Testbench\TestCase;
 
 class RemoveDockerFilesCommandTest extends TestCase
 {
-    protected $files;
-    protected $dir;
+    protected ?Filesystem $files;
+    protected string $dir;
+    protected string $prefix = 'something';
 
     protected function setUp(): void
     {
@@ -19,7 +20,7 @@ class RemoveDockerFilesCommandTest extends TestCase
 
         $this->dir = base_path(env('DOCKER_OUTPUT_DIR', 'docker/basic'));
 
-        if (! $this->files->exists($this->dir)) {
+        if (!$this->files->exists($this->dir)) {
             $this->files->makeDirectory($this->dir, 0755, true);
         }
 
@@ -30,6 +31,9 @@ class RemoveDockerFilesCommandTest extends TestCase
 
         $makefile = base_path('Makefile');
         $this->files->put($makefile, 'Dummy Makefile content');
+
+        $dockerCompose = base_path($this->getDockerComposeFileName());
+        $this->files->put($dockerCompose, 'Dummy Docker compose content');
     }
 
     protected function getPackageProviders($app)
@@ -44,13 +48,20 @@ class RemoveDockerFilesCommandTest extends TestCase
         $this->assertTrue($this->files->exists($this->dir));
         $this->assertTrue($this->files->exists(base_path('.env.docker.dist')));
         $this->assertTrue($this->files->exists(base_path('Makefile')));
+        $this->assertTrue($this->files->exists(base_path($this->getDockerComposeFileName())));
 
-        $this->artisan('remove:docker-generator')
+        $this->artisan('remove:docker-generator', ['prefix' => $this->prefix])
             ->expectsOutput('Cleanup completed.')
             ->assertExitCode(0);
 
         $this->assertFalse($this->files->exists($this->dir));
         $this->assertFalse($this->files->exists(base_path('.env.docker.dist')));
         $this->assertFalse($this->files->exists(base_path('Makefile')));
+        $this->assertFalse($this->files->exists(base_path($this->getDockerComposeFileName())));
+    }
+
+    private function getDockerComposeFileName(): string
+    {
+        return sprintf('docker-compose.%s.yml', $this->prefix);
     }
 }

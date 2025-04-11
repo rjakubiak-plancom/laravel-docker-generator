@@ -1,6 +1,6 @@
 # Executables (local)
 DOCKER_EXEC = docker exec -it {{prefix}}_php
-COMPOSE_CMD = docker compose
+COMPOSE_CMD = docker compose -f docker-compose.{{prefix}}.yml
 
 # Executables
 PHP = php
